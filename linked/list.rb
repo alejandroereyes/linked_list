@@ -1,4 +1,3 @@
-require 'pry'
 require_relative 'node'
 module Linked
   class List
@@ -34,62 +33,99 @@ module Linked
     def size
       # total number of nodes in list
       return 0 if empty?
-      @size = 0
-      head_to_tail { @size += 1 }
-      @size
+      size = 0
+      each { size += 1 }
+      size
+    end
+
+    def at(index)
+      # returns node at the given index
+      each_with_index do |node, current_index|
+        return node if current_index == index
+      end
     end
 
     def pop
       # removes last node
-      tail_pointer           = get_pointer_to_tail
-      tail_pointer.next_node = nil
-      @tail                  = tail_pointer
+      each_with_index_n_previous do |node, current_index, previous_node|
+        next if node.next_node
+
+        previous_node.next_node = nil
+        @tail                   = previous_node
+      end
     end
 
     def contains?(value)
       # true or false if value is contained in one of the nodes
-      @contains_value = false
-      head_to_tail { |node| @contains_value = true and break if node.value == value }
-      @contains_value
+      !!find(value)
     end
 
     def find(value)
       # returns index of node containing the data
-      head_to_tail { |node| return node if node.value == value }
+      each_with_index do |node, current_index|
+        return current_index if node.value == value
+      end
     end
 
     def to_s
       # formats a string of the list: (value) -> (value) -> (value) -> nil
       return if empty?
-      @str = ""
-      head_to_tail do |node|
-        @str << "(#{node.value}) -> "
-        @str << "nil" if node.next_node.nil?
+      str = ""
+      each do |node|
+        str << "(#{node.value}) -> "
+        str << "nil" if node.next_node.nil?
       end
-      @str
+      str
     end
 
-    def insert(node)
-
+    def insert_value_at(index, data)
+      # inserts the data at the given index
+      each_with_index do |node, current_index|
+        node.value = data and break if current_index == index
+      end
     end
 
-    def remove(node_or_value)
+    def insert_node_at(index, new_node)
+      # insert the node at the given index
+      each_with_index_n_previous do |node, current_index, previous_node|
+        next unless current_index == index
 
+        new_node.next_node      = node
+        previous_node.next_node = new_node
+      end
+    end
+
+    def remove_at(index)
+      # removes node at the given index
+      each_with_index_n_previous do |node, current_index, previous_node|
+        next unless current_index == index
+
+        previous_node.next_node = node.next_node
+        @tail = previous_node if node == @tail
+        return node
+      end
     end
 
     private
-    def head_to_tail(node=@head, &block)
-      if block_given?
-        yield node
-        head_to_tail(node.next_node, &block) if node.next_node
-      else
-        head_to_tail node.next_node if node.next_node
+    def each(node=@head, &block)
+      yield node
+      each(node.next_node, &block) if node.next_node
+    end
+
+    def each_with_index(&block)
+      index = 0
+      each do |node|
+        yield node, index
+        index += 1
       end
     end
 
-    def get_pointer_to_tail
-      return node if node.next_node == tail
-      head_to_tail { |node| return node if node.next_node == tail }
+    def each_with_index_n_previous(&block)
+      previous_node = nil
+      each_with_index do |node, current_index|
+        yield node, current_index, previous_node
+        previous_node = node
+      end
     end
 
     def empty?
@@ -102,7 +138,6 @@ module Linked
         @tail = node
         return node
       end
-      false
     end
   end
 end
@@ -116,15 +151,34 @@ linky << arr.first
 linky << arr[1]
 linky << arr[2]
 
-puts "#{linky.inspect}"
-puts "\n Size: #{linky.size}\n"
-puts "\n Has letter x: #{linky.contains?('x')}\n"
-puts "\n Find f: #{linky.find('f').inspect}\n"
-puts "\n Format to_s: #{linky.to_s}\n"
+puts "Three nodes added to list:\nHEAD: #{arr.first.inspect}\nMIDDLE: #{arr[1].inspect}\nTAIL: #{arr[2].inspect}\n\n"
+puts "LIST: #{linky.inspect}"
+puts "\nINITIAL STATS:\n"
+puts "\n Size: #{linky.size}"
+puts " Has letter x: #{linky.contains?('x')}"
+puts " Find index for 'f' value node: #{linky.find('f').inspect}"
+puts " Format to_s: #{linky.to_s}"
+puts " Get node at index 1: #{linky.at(1).inspect}\n"
+puts "\n-------------------------------\n"
 linky.pop
-puts "\n Pop last item, check size: #{linky.size}\n"
-puts "\n #{linky.inspect}\n"
-
-1.times do
-  # binding.pry
-end
+puts "\n Pop last item. \n\n New size: #{linky.size}\n"
+puts " Has letter x: #{linky.contains?('x')}"
+puts " Has letter a: #{linky.contains?('a')}"
+puts " Next order: #{linky.to_s}\n"
+puts "\n-------------------------------\n"
+linky.insert_value_at(0, 'z')
+puts "\n Inserted 'z' into head value. \n"
+puts "\n New Order: #{linky.to_s}"
+puts " Does list have letter z: #{linky.contains?('z')}"
+puts "\n-------------------------------\n"
+linky << arr[3]
+puts "\n Added node with 'o' value to tail\n"
+puts "\n Size: #{linky.size}\n New Order:#{linky.to_s}"
+puts "\n-------------------------------\n"
+linky.remove_at(1)
+puts "\n Removed node at index 1 with value of 'f'\n"
+puts "\n Size: #{linky.size}\n New Order: #{linky.to_s}"
+puts "\n-------------------------------\n"
+linky.insert_node_at(1, arr.last)
+puts "\n Inserting node with value 'n' at index 1\n\n"
+puts " New Order: #{linky.to_s}"
