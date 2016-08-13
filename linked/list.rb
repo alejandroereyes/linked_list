@@ -136,7 +136,6 @@ module Linked
       if empty?
         @head = node
         @tail = node
-        return node
       end
     end
   end
