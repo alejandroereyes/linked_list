@@ -74,7 +74,7 @@ module Linked
     end
 
     def remove(node_or_value)
-      
+
     end
 
     private
@@ -87,7 +87,7 @@ module Linked
       end
     end
 
-    def get_pointer_to_tail(node=@head)
+    def get_pointer_to_tail
       return node if node.next_node == tail
       head_to_tail { |node| return node if node.next_node == tail }
     end
