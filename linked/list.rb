@@ -52,6 +52,7 @@ module Linked
 
         previous_node.next_node = nil
         @tail                   = previous_node
+        return node
       end
     end
 
